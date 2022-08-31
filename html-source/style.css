@@ -160,6 +160,10 @@ hr {
 	display: block;
 }
 
+.channel-transcript .message-wrapper .text .message .file-link {
+	display: block;
+}
+
 .channel-transcript .message-wrapper.system .text .message {
 	color: #777;
 }

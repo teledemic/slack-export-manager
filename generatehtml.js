@@ -120,14 +120,21 @@ for (const channel of channels) {
 `);
 		const json = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, channel.name, file), "utf-8"));
 		for (const message of json) {
-			const sender = users.find(item => item.id === message.user);
+			let sender = users.find(item => item.id === message.user);
+			// Hacky workaround for bot
+			if (!sender) sender = { showname: "Vermontopia Bot", img: "U01RH62R550.png" };
 			if (message.subtype === undefined) {
+				// User mentions
 				if (message.text.includes("<@")) {
 					for (const user of users) {
 						message.text = message.text.split("<@" + user.id + ">").join("<span class='user-ref'>@" + user.showname + "</span>");
 					}
 				}
+				// TODO: Angle brackets for links etc
+
+				// Newlines
 				message.text = message.text.replace(/\n/g, "<br>");
+				// Attached files
 				if (message.files && message.files.length) {
 					for (const file of message.files) {
 						// Search the files folder because the info may be gone from slack
@@ -138,15 +145,20 @@ for (const channel of channels) {
 							} else if (sourcefile.endsWith("mp4") || sourcefile.endsWith("mov")) {
 								message.text += `<video controls src="files/${sourcefile}" />`;
 							} else {
-								console.log(file);
+								message.text += `<a class="file-link" href="files/${sourcefile}">${sourcefile}</a>`
 							}
+						} else {
+							// Deleted files, I think (mode: 'tombstone')
 						}
 					}
 				}
 				WriteMessage(output, sender, message.ts, message.text);
 			} else if (message.subtype === "channel_join") {
 				WriteMessage(output, sender, message.ts, "joined the channel", "system");
+			} else if (message.subtype === "bot_message") {
+				WriteMessage(output, sender, message.ts, message.text);
 			} else {
+				// Unhandled messages
 				// console.log(message);
 			}
 		}
