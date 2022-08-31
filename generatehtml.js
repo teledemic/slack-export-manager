@@ -1,6 +1,5 @@
 import fs from "fs-extra";
 import path from "path";
-import axios from "axios";
 
 const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Aug 30 2022";
 const FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack Files";
@@ -24,6 +23,20 @@ function GetTime(timestamp) {
 	return date.toLocaleTimeString();
 }
 
+function WriteMessage(output, user, ts, message, messageClass) {
+	output.write(`	<div class="message-wrapper${ messageClass ? " " + messageClass : ""}">
+	<img class="user-pic" src="users/${user.img}">
+	<div class="text">
+		<div class="header">
+			<div class="user-name">${user.showname}</div>
+			<div class="time">${GetTime(ts)}</div>
+		</div>
+		<div class="message">${message}</div>
+	</div>
+</div>
+`);
+}
+
 // Create destination directories
 await fs.mkdir(OUTPUT_PATH, { recursive: true });
 await fs.mkdir(path.join(OUTPUT_PATH, "users"), { recursive: true });
@@ -33,7 +46,8 @@ await fs.copyFile("./html-source/style.css", path.join(OUTPUT_PATH, "style.css")
 await fs.copyFile("./html-source/script.js", path.join(OUTPUT_PATH, "script.js"));
 
 const users = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, "users.json")));
-const channels = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, "channels.json")));
+let channels = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, "channels.json")));
+channels = channels.sort((a, b) => (a.name > b.name) ? 1 : -1);
 // Generalize some user info
 for (const user of users) {
 	if (await fs.pathExists(path.join(USER_FILES_PATH, user.id + ".png"))) {
@@ -64,8 +78,11 @@ homepage.write(`<!DOCTYPE html>
 			<div class="slack-name">${SLACK_NAME}</div>
 			<hr>
 			<div>Channels</div>
-			<a class="channel-link" href="javascript:LoadChannel('activity-ideas')">activity-ideas</a>
-		</div>
+`);
+for (const channel of channels) {
+	homepage.write(`			<div class="channel-link${channel.is_archived ? " archived" : ""}"><a href="javascript:LoadChannel('${channel.name}')">${channel.name}</a></div>`);
+}
+homepage.write(`		</div>
 		<div class="column main">
 			<iframe id="channel-frame" title="Transcript" />
 		</div>
@@ -87,7 +104,8 @@ for (const channel of channels) {
 	<link href="style.css" rel="stylesheet">
 </head>
 <body class="channel-transcript">
-	<div class="channel-name">#activity-ideas</div>
+	<div class="channel-name">#${channel.name}</div>
+	<div class="channel-description">${channel.purpose.value}</div>
 `);
 	const files = await fs.readdir(path.join(SOURCE_PATH, channel.name));
 	files.sort();
@@ -98,25 +116,18 @@ for (const channel of channels) {
 `);
 		const json = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, channel.name, file), "utf-8"));
 		for (const message of json) {
-			if (message.subtype !== undefined || message.text === "") continue;
-			if (message.text.includes("<@")) {
-				for (const user of users) {
-					message.text = message.text.split("<@" + user.id + ">").join("<span class='user-ref'>@" + user.showname + "</span>");
-				}
-			}
-			message.text = message.text.replace(/\n/g, "<br>");
 			const sender = users.find(item => item.id === message.user);
-			output.write(`	<div class="message-wrapper">
-		<img class="user-pic" src="users/${sender.img}">
-		<div class="text">
-			<div class="header">
-				<div class="user-name">${sender.showname}</div>
-				<div class="time">${GetTime(message.ts)}</div>
-			</div>
-			<div class="message">${message.text}</div>
-		</div>
-	</div>
-`)
+			if (message.subtype === undefined && message.text !== "") {
+				if (message.text.includes("<@")) {
+					for (const user of users) {
+						message.text = message.text.split("<@" + user.id + ">").join("<span class='user-ref'>@" + user.showname + "</span>");
+					}
+				}
+				message.text = message.text.replace(/\n/g, "<br>");
+				WriteMessage(output, sender, message.ts, message.text);
+			} else if (message.subtype === "channel_join") {
+				WriteMessage(output, sender, message.ts, "joined the channel", "system");
+			}
 		}
 	}
 	output.write(`</body>
