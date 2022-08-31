@@ -24,7 +24,7 @@ function GetTime(timestamp) {
 }
 
 function WriteMessage(output, user, ts, message, messageClass) {
-	output.write(`	<div class="message-wrapper${ messageClass ? " " + messageClass : ""}">
+	output.write(`	<div class="message-wrapper${messageClass ? " " + messageClass : ""}">
 	<img class="user-pic" src="users/${user.img}">
 	<div class="text">
 		<div class="header">
@@ -38,16 +38,20 @@ function WriteMessage(output, user, ts, message, messageClass) {
 }
 
 // Create destination directories
-await fs.mkdir(OUTPUT_PATH, { recursive: true });
-await fs.mkdir(path.join(OUTPUT_PATH, "users"), { recursive: true });
-await fs.mkdir(path.join(OUTPUT_PATH, "files"), { recursive: true });
-// Copy static files
+await fs.ensureDir(OUTPUT_PATH);
+await fs.ensureDir(path.join(OUTPUT_PATH, "users"));
+await fs.ensureDir(path.join(OUTPUT_PATH, "files"));
+// Copy static files, but skip if they exist
 await fs.copyFile("./html-source/style.css", path.join(OUTPUT_PATH, "style.css"));
 await fs.copyFile("./html-source/script.js", path.join(OUTPUT_PATH, "script.js"));
+console.log("Copying files");
+await fs.copy(FILES_PATH, path.join(OUTPUT_PATH, "files"), { overwrite: false, errorOnExist: false });
+await fs.copy(USER_FILES_PATH, path.join(OUTPUT_PATH, "users"), { overwrite: false, errorOnExist: false });
 
 const users = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, "users.json")));
 let channels = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, "channels.json")));
 channels = channels.sort((a, b) => (a.name > b.name) ? 1 : -1);
+const sourcefiles = await fs.readdir(path.join(OUTPUT_PATH, "files"));
 // Generalize some user info
 for (const user of users) {
 	if (await fs.pathExists(path.join(USER_FILES_PATH, user.id + ".png"))) {
@@ -117,16 +121,33 @@ for (const channel of channels) {
 		const json = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, channel.name, file), "utf-8"));
 		for (const message of json) {
 			const sender = users.find(item => item.id === message.user);
-			if (message.subtype === undefined && message.text !== "") {
+			if (message.subtype === undefined) {
 				if (message.text.includes("<@")) {
 					for (const user of users) {
 						message.text = message.text.split("<@" + user.id + ">").join("<span class='user-ref'>@" + user.showname + "</span>");
 					}
 				}
 				message.text = message.text.replace(/\n/g, "<br>");
+				if (message.files && message.files.length) {
+					for (const file of message.files) {
+						// Search the files folder because the info may be gone from slack
+						const sourcefile = sourcefiles.find(item => item.startsWith(file.id));
+						if (sourcefile) {
+							if (sourcefile.endsWith("jpg") || sourcefile.endsWith("png") || sourcefile.endsWith("gif")) {
+								message.text += `<img src="files/${sourcefile}">`;
+							} else if (sourcefile.endsWith("mp4") || sourcefile.endsWith("mov")) {
+								message.text += `<video controls src="files/${sourcefile}" />`;
+							} else {
+								console.log(file);
+							}
+						}
+					}
+				}
 				WriteMessage(output, sender, message.ts, message.text);
 			} else if (message.subtype === "channel_join") {
 				WriteMessage(output, sender, message.ts, "joined the channel", "system");
+			} else {
+				// console.log(message);
 			}
 		}
 	}

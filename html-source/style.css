@@ -148,6 +148,18 @@ hr {
 	color: #777;
 }
 
+.channel-transcript .message-wrapper .text .message img {
+	max-width: 500px;
+	height: auto;
+	display: block;
+}
+
+.channel-transcript .message-wrapper .text .message video {
+	max-width: 500px;
+	height: auto;
+	display: block;
+}
+
 .channel-transcript .message-wrapper.system .text .message {
 	color: #777;
 }
