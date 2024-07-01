@@ -2,8 +2,8 @@ import fs from "fs-extra";
 import path from "path";
 import axios from "axios";
 
-const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Aug 30 2022";
-const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Aug 30 2022/files/users";
+const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024";
+const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024/files/users";
 
 const users = JSON.parse(await fs.readFile(path.join(SOURCE_PATH, "users.json")));
 for (const user of users) {

@@ -2,8 +2,8 @@ import fs from "fs-extra";
 import path from "path";
 import axios from "axios";
 
-const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Aug 30 2022";
-const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Aug 30 2022/files";
+const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024";
+const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024/files";
 
 const dirs = await fs.readdir(SOURCE_PATH);
 for (const dir of dirs) {
@@ -20,6 +20,7 @@ for (const dir of dirs) {
 						const outputPath = path.join(OUTPUT_PATH, file.id + "." + file.filetype);
 						if (!(await fs.pathExists(outputPath))) {
 							if (file.url_private) {
+								if (file.url_private.startsWith("https://docs.google.com")) continue;
 								const response = await axios.get(file.url_private, { responseType: "arraybuffer" });
 								await fs.writeFile(outputPath, response.data);
 								console.log("Downloaded " + file.id + "." + file.filetype);

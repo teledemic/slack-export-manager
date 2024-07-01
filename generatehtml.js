@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 
-const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Aug 30 2022";
+const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024";
 const FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack Files";
 const USER_FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack Files/users";
 const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia HTML";
@@ -114,6 +114,7 @@ for (const channel of channels) {
 	const files = await fs.readdir(path.join(SOURCE_PATH, channel.name));
 	files.sort();
 	for (const file of files) {
+		if (file === "canvas_in_the_conversation.json") continue;
 		output.write(`	<div class="date-line">
 		<div class="date">${GetLongDate(file)}</div>
 	</div>
@@ -123,8 +124,9 @@ for (const channel of channels) {
 			let sender = users.find(item => item.id === message.user);
 			// Hacky workaround for bot
 			if (!sender) sender = { showname: "Vermontopia Bot", img: "U01RH62R550.png" };
-			if (message.subtype === undefined) {
+			if (message.subtype === undefined || message.subtype === "thread_broadcast") {
 				// User mentions
+				if (!message.text) message.text = "";
 				if (message.text.includes("<@")) {
 					for (const user of users) {
 						message.text = message.text.split("<@" + user.id + ">").join("<span class='user-ref'>@" + user.showname + "</span>");
@@ -155,11 +157,13 @@ for (const channel of channels) {
 				WriteMessage(output, sender, message.ts, message.text);
 			} else if (message.subtype === "channel_join") {
 				WriteMessage(output, sender, message.ts, "joined the channel", "system");
-			} else if (message.subtype === "bot_message") {
+			} else if (message.subtype === "bot_message" || message.subtype === "channel_archive" || message.subtype === "channel_unarchive") {
 				WriteMessage(output, sender, message.ts, message.text);
+			} else if (message.subtype === "tombstone") {
+				// Ignore deleted messages
 			} else {
 				// Unhandled messages
-				// console.log(message);
+				console.log(message);
 			}
 		}
 	}
