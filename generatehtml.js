@@ -136,6 +136,8 @@ for (const channel of channels) {
 
 				// Newlines
 				message.text = message.text.replace(/\n/g, "<br>");
+				// Links
+				message.text = message.text.replace(/<http[^|]*\|([^>]*)>/g, "<a href='$1'>$1</a>");
 				// Attached files
 				if (message.files && message.files.length) {
 					for (const file of message.files) {
