@@ -167,3 +167,48 @@ hr {
 .channel-transcript .message-wrapper.system .text .message {
 	color: #777;
 }
+
+.channel-transcript .attachment {
+	margin: 8px;
+	margin-left: 50px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	max-width: 500px;
+}
+
+.channel-transcript .attachment .attachment-header {
+	padding: 8px;
+	background-color: #f0f0f0;
+	border-bottom: 1px solid #ccc;
+}
+
+.channel-transcript .attachment .attachment-header .attachment-byline {
+	color: #999;
+	margin-bottom: 4px;
+}
+
+.channel-transcript .attachment .attachment-header .attachment-byline img {
+	max-width: 16px;
+	margin-right: 6px;
+}
+
+.channel-transcript .attachment .attachment-header .attachment-byline .service-name {
+	font-weight: 600;
+	margin-right: 6px;
+}
+
+.channel-transcript .attachment .attachment-header a {
+	color: black;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.channel-transcript .attachment .attachment-content {
+	padding: 8px;
+	color: #666;
+}
+
+.channel-transcript .attachment .attachment-content img,
+.channel-transcript .attachment .attachment-content video {
+	max-width: 490px;
+}

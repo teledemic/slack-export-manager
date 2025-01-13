@@ -37,6 +37,38 @@ function WriteMessage(output, user, ts, message, messageClass) {
 `);
 }
 
+function WriteAttachment(output, attachment) {
+	let content = "";
+	if (attachment.image_url) {
+		content = `<img src="${attachment.image_url}">`;
+	} else if (attachment.video_html) {
+		content = attachment.video_html.replace("autoplay=1", "autoplay=0");
+	} else if (attachment.thumb_url) {
+		content = `<img src="${attachment.thumb_url}">`;
+	} else if (attachment.text) {
+		content = attachment.text;
+	} else {
+		// If no text or title, bail, otherwise omit content
+		if (!attachment.title) return;
+	}
+	if (content) content = `<div class="attachment-content">${content}</div>`;
+	let byline = "";
+	if (attachment.service_icon) byline += `<img src="${attachment.service_icon}">`;
+	if (attachment.service_name) byline += `<span class="service-name">${attachment.service_name}</span>`;
+	if (attachment.author_name) byline += `<span class="author-name">${attachment.author_name}</span>`;
+	if (byline) byline = `<div class="attachment-byline">${byline}</div>`;
+	let title = "";
+	if (attachment.title) title = `<div class="attachment-title"><a href="${attachment.title_link}">${attachment.title}</a></div>`;
+	output.write(`	<div class="attachment">
+		<div class="attachment-header">
+			${byline}
+			${title}
+		</div>
+		${content}
+	</div>
+`);
+}
+
 // Create destination directories
 await fs.ensureDir(OUTPUT_PATH);
 await fs.ensureDir(path.join(OUTPUT_PATH, "users"));
@@ -157,6 +189,11 @@ for (const channel of channels) {
 					}
 				}
 				WriteMessage(output, sender, message.ts, message.text);
+				if (message.attachments && message.attachments.length) {
+					for (const attachment of message.attachments) {
+						WriteAttachment(output, attachment);
+					}
+				}
 			} else if (message.subtype === "channel_join") {
 				WriteMessage(output, sender, message.ts, "joined the channel", "system");
 			} else if (message.subtype === "bot_message" || message.subtype === "channel_archive" || message.subtype === "channel_unarchive") {
