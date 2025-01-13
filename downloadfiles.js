@@ -2,8 +2,8 @@ import fs from "fs-extra";
 import path from "path";
 import axios from "axios";
 
-const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024";
-const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024/files";
+const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025";
+const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025/files";
 
 const dirs = await fs.readdir(SOURCE_PATH);
 for (const dir of dirs) {

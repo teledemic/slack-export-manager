@@ -1,8 +1,8 @@
 import fs from "fs-extra";
 import path from "path";
 
-const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jul 1 2024";
-const FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack Files";
+const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025";
+const FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025/files";
 const USER_FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack Files/users";
 const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia HTML";
 const SLACK_NAME = "Vermontopia";
@@ -159,14 +159,16 @@ for (const channel of channels) {
 				WriteMessage(output, sender, message.ts, "joined the channel", "system");
 			} else if (message.subtype === "bot_message" || message.subtype === "channel_archive" || message.subtype === "channel_unarchive") {
 				WriteMessage(output, sender, message.ts, message.text);
-			} else if (message.subtype === "tombstone") {
-				// Ignore deleted messages
+			} else if (message.subtype === "tombstone" || message.subtype === "channel_topic" || message.subtype === "channel_purpose" || message.subtype === "channel_name") {
+				// Ignore deleted messages, topic changes
 			} else {
 				// Unhandled messages
 				console.log(message);
 			}
 		}
 	}
+	// One more date line for padding
+	output.write(`	<div class="date-line"></div>`);
 	output.write(`</body>
 </html>`);
 	output.close();

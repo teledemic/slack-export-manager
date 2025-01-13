@@ -8,7 +8,8 @@
   "version": "1.0.0",
   "main": "downloadfiles.js",
   "scripts": {
-    "start": "node downloadfiles.js",
+    "files": "node downloadfiles.js",
+    "html": "node generatehtml.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
