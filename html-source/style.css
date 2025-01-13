@@ -168,6 +168,18 @@ hr {
 	color: #777;
 }
 
+.channel-transcript .message-wrapper .text .reactions {
+	margin-top: 4px;
+}
+
+.channel-transcript .message-wrapper .text .reaction {
+	display: inline;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 2px;
+	margin-right: 4px;
+}
+
 .channel-transcript .attachment {
 	margin: 8px;
 	margin-left: 50px;

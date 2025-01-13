@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "axios": "^0.27.2",
-    "fs-extra": "^9.1.0"
+    "fs-extra": "^9.1.0",
+    "node-emoji": "^2.2.0"
   },
   "name": "slack-export-manager",
   "description": "Tools for slack exports",

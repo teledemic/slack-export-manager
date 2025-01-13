@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+import * as emoji from "node-emoji";
 
 const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025";
 const FILES_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025/files";
@@ -23,8 +24,135 @@ function GetTime(timestamp) {
 	return date.toLocaleTimeString();
 }
 
+let failedEmojis = new Map();
+function ConvertEmojis(text) {
+	return emoji.emojify(text.replace(/-/g, "_"), {
+		format: (emoji, part, string) => {
+			if (!part || !string) {
+				// Emoji is not found, TODO fix here
+				// console.log(emoji, part, string);
+				switch (emoji) {
+					case ":skin_tone_1:":
+					case ":skin_tone_2:":
+					case ":skin_tone_3:":
+					case ":skin_tone_4:":
+					case ":skin_tone_5:":
+						return "";
+					case ":virus:":
+						return "🦠";
+					case ":haircut:":
+						return "💇";
+					case ":woman_getting_haircut:":
+						return "💇‍♀️";
+					case ":woman_raising_hand:":
+						return "🙋‍♀️";
+					case ":squirrel:":
+						return "🐿️";
+					case ":massage:":
+						return "💆";
+					case ":eyebrows:":
+					case ":face_with_raised_eyebrow:":
+						return "🤨";
+					case ":pig_happy:":
+						return "🐷";
+					case ":face_with_hand_over_mouth:":
+						return "🤭";
+					case ":dancedoge:":
+						return "🐕‍🦺";
+					case ":lower_left_paintbrush:":
+						return "🖌️";
+					case ":admission_tickets:":
+						return "🎟️";
+					case ":woman_with_bunny_ears_partying:":
+						return "👯‍♀️";
+					case ":woman_getting_massage:":
+						return "💆‍♀️";
+					case ":woozy_face:":
+						return "🥴";
+					case ":hugging_face:":
+						return "🤗";
+					case ":aw_yeah:":
+						return "🤙";
+					case ":smiling_face_with_3_hearts:":
+						return "🥰";
+					case ":fencer:":
+						return "🤺";
+					case ":bee:":
+						return "🐝";
+					case ":sports_medal:":
+						return "🏅";
+					case ":trump_dance:":
+						return "🕺";
+					case ":face_with_spiral_eyes:":
+						return "😵‍💫";
+					case ":hankey:":
+						return "💩";
+					case ":_1:":
+						return "👎";
+					case ":thinking_face:":
+						return "🤔";
+					case ":pleading_face:":
+						return "🥺";
+					case ":face_with_rolling_eyes:":
+						return "🙄";
+					case ":coolstory:":
+						return "👍";
+					case ":zany_face:":
+						return "🤪";
+					case ":rolling_on_the_floor_laughing:":
+						return "🤣";
+					case ":happy_dog:":
+						return "🐶";
+					case ":the_horns:":
+						return "🤘";
+					case ":dinosaurs:":
+						return "🦖";
+					case ":this_is_fine_fire:":
+						return "🔥";
+					case ":cheese_wedge:":
+						return "🧀";
+					case ":pinching_hand:":
+						return "🤏";
+					case ":partying_face:":
+						return "🥳";
+					case ":face_vomiting:":
+						return "🤮";
+					case ":face_with_monocle:":
+						return "🧐";
+					case ":ahhhhhhhh:":
+						return "😱";
+					case ":woman_gesturing_ok:":
+						return "🙆‍♀️";
+					case ":salute_canada:":
+						return "🇨🇦";
+					case ":excuse_me:":
+						return "🙋";
+					case ":face_with_cowboy_hat:":
+						return "🤠";
+					case ":smiling_face_with_tear:":
+						return "🥲";
+					case ":drum_with_drumsticks:":
+						return "🥁";
+					default:
+						const count = failedEmojis.get(emoji) || 0;
+						failedEmojis.set(emoji, count + 1);
+				}
+			}
+			return emoji;
+		}
+	});
+}
+
 // TODO: reactions
-function WriteMessage(output, user, ts, message, messageClass) {
+function WriteMessage(output, user, ts, message, messageClass, reactions) {
+	let reactionText = "";
+	if (reactions && reactions.length) {
+		for (const reaction of reactions) {
+			const reactors = reaction.users.map(reactor => users.find(item => item.id === reactor).showname).join(", ");
+			reactionText += `<div class="reaction" title="${reactors}">${ConvertEmojis(":" + reaction.name + ":")} ${reaction.count}</div>`;
+		}
+	}
+	if (reactionText) reactionText = `<div class="reactions">${reactionText}</div>`;
 	output.write(`	<div class="message-wrapper${messageClass ? " " + messageClass : ""}">
 	<img class="user-pic" src="users/${user.img}">
 	<div class="text">
@@ -32,7 +160,8 @@ function WriteMessage(output, user, ts, message, messageClass) {
 			<div class="user-name">${user.showname}</div>
 			<div class="time">${GetTime(ts)}</div>
 		</div>
-		<div class="message">${message}</div>
+		<div class="message">${ConvertEmojis(message)}</div>
+		${reactionText}
 	</div>
 </div>
 `);
@@ -106,7 +235,7 @@ homepage.write(`<!DOCTYPE html>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width,initial-scale=1.0">
 	<title>${SLACK_NAME}</title>
-	<link href="style.css" rel="stylesheet">
+	<link href="style.css" rel="preload stylesheet">
 	<script src="script.js"></script>
 </head>
 <body>
@@ -188,16 +317,16 @@ for (const channel of channels) {
 						}
 					}
 				}
-				WriteMessage(output, sender, message.ts, message.text);
+				WriteMessage(output, sender, message.ts, message.text, undefined, message.reactions);
 				if (message.attachments && message.attachments.length) {
 					for (const attachment of message.attachments) {
 						WriteAttachment(output, attachment);
 					}
 				}
 			} else if (message.subtype === "channel_join") {
-				WriteMessage(output, sender, message.ts, "joined the channel", "system");
+				WriteMessage(output, sender, message.ts, "joined the channel", "system", message.reactions);
 			} else if (message.subtype === "bot_message" || message.subtype === "channel_archive" || message.subtype === "channel_unarchive") {
-				WriteMessage(output, sender, message.ts, message.text);
+				WriteMessage(output, sender, message.ts, message.text, undefined, message.reactions);
 			} else if (message.subtype === "tombstone" || message.subtype === "channel_topic" || message.subtype === "channel_purpose" || message.subtype === "channel_name") {
 				// Ignore deleted messages, topic changes
 			} else {
@@ -212,3 +341,6 @@ for (const channel of channels) {
 </html>`);
 	output.close();
 }
+// Display failed emoji counts
+// const failedEmojisSortedByCount = Array.from(failedEmojis).sort((a, b) => (a[1] < b[1]) ? 1 : -1);
+// console.log(failedEmojisSortedByCount);
