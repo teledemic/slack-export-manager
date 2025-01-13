@@ -23,6 +23,7 @@ function GetTime(timestamp) {
 	return date.toLocaleTimeString();
 }
 
+// TODO: reactions
 function WriteMessage(output, user, ts, message, messageClass) {
 	output.write(`	<div class="message-wrapper${messageClass ? " " + messageClass : ""}">
 	<img class="user-pic" src="users/${user.img}">
@@ -164,7 +165,6 @@ for (const channel of channels) {
 						message.text = message.text.split("<@" + user.id + ">").join("<span class='user-ref'>@" + user.showname + "</span>");
 					}
 				}
-				// TODO: Angle brackets for links etc
 
 				// Newlines
 				message.text = message.text.replace(/\n/g, "<br>");
