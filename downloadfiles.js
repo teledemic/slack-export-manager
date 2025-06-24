@@ -2,10 +2,11 @@ import fs from "fs-extra";
 import path from "path";
 import axios from "axios";
 
-const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025";
-const OUTPUT_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jan 13 2025/files";
+const SOURCE_PATH = "/Users/teledemic/Downloads/Vermontopia Slack export Mar 17 2020 - Jun 24 2025";
+const OUTPUT_PATH = SOURCE_PATH + "/files";
 
 const dirs = await fs.readdir(SOURCE_PATH);
+fs.ensureDirSync(OUTPUT_PATH);
 for (const dir of dirs) {
 	console.log("scanning channel " + dir);
 	const stat = await fs.stat(path.join(SOURCE_PATH, dir));
